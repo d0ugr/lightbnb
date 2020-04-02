@@ -18,7 +18,8 @@ const pool = new Pool({
  */
 const getUserWithEmail = function(email) {
   return pool.query("SELECT * FROM users WHERE email = $1", [ email ])
-    .then(res => res.rows[0]);
+    .then(res => res.rows[0])
+    .catch(_err => Promise.reject(null));
 };
 exports.getUserWithEmail = getUserWithEmail;
 
@@ -29,7 +30,8 @@ exports.getUserWithEmail = getUserWithEmail;
  */
 const getUserWithId = function(id) {
   return pool.query("SELECT * FROM users WHERE id = $1", [ id ])
-    .then(res => res.rows[0]);
+    .then(res => res.rows[0])
+    .catch(_err => Promise.reject(null));
 };
 exports.getUserWithId = getUserWithId;
 
@@ -42,7 +44,8 @@ exports.getUserWithId = getUserWithId;
 const addUser =  function(user) {
   return pool.query("INSERT INTO users (email, password, name) VALUES ($1, $2, $3)",
     [ user.email, '$2a$10$FB/BOAVhpuLvpOREQVmvmezD4ED/.JBIDRh70tGevYzYzQgFId2u', user.name ])
-    .then(res => res.rows);
+    .then(res => res.rows)
+    .catch(_err => Promise.reject(null));
 };
 exports.addUser = addUser;
 
