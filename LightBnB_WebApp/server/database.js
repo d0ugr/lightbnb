@@ -1,6 +1,4 @@
-const properties = require('./json/properties.json');
 const { Pool } = require('pg');
-
 const pool = new Pool({
   user:     'vagrant',
   password: '123',
@@ -125,9 +123,38 @@ exports.getAllProperties = getAllProperties;
  * @return {Promise<{}>} A promise to the property.
  */
 const addProperty = function(property) {
-  const propertyId = Object.keys(properties).length + 1;
-  property.id = propertyId;
-  properties[propertyId] = property;
-  return Promise.resolve(property);
+  property.number_of_bedrooms  = Number(property.number_of_bedrooms);
+  property.number_of_bathrooms = Number(property.number_of_bathrooms);
+  property.parking_spaces      = Number(property.parking_spaces);
+  property.cost_per_night      = Number(property.cost_per_night);
+  property.owner_id            = Number(property.owner_id);
+  property.active              = false;
+  // Database checks owner_id:
+  if (!property.title || !property.description ||
+      !property.number_of_bedrooms || !property.number_of_bathrooms || !property.parking_spaces ||
+      !property.cost_per_night || !property.thumbnail_photo_url || !property.cover_photo_url ||
+      !property.street || !property.country || !property.city || !property.province || !property.post_code) {
+    return Promise.reject("Invalid property data");
+  }
+  const columns      = Object.keys(property);
+  const values       = [];
+  const placeholders = [];
+  for (let i = 0; i < columns.length; i++) {
+    values.push(property[columns[i]]);
+    placeholders.push(`$${i + 1}`);
+  }
+  console.log(columns.join(", "), values, placeholders.join(", "));
+  return pool.query(`INSERT INTO properties (${columns.join(", ")}) ` +
+                    // "(owner_id, title, description, thumbnail_photo_url, cover_photo_url, cost_per_night, " +
+                    // "parking_spaces, number_of_bathrooms, number_of_bedrooms, street, city, province, country, post_code, active) "
+                    `VALUES (${placeholders.join(", ")}) RETURNING *;`, values)
+    .then(res => {
+      // console.log(res.rows);
+      return res.rows;
+    })
+    .catch(err => {
+      console.log(err);
+      return null;
+    });
 };
 exports.addProperty = addProperty;
